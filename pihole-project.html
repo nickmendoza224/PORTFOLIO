@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Network Security — Nick Mendoza</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --surface: #101010;
+      --border: #1a1a1a;
+      --text: #e8e8e8;
+      --muted: #555;
+      --green: #00ff88;
+      --cyan: #00d4ff;
+      --red: #ff4466;
+      --yellow: #ffcc00;
+      --glow-green: 0 0 20px rgba(0,255,136,0.4);
+      --glow-cyan: 0 0 20px rgba(0,212,255,0.4);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── BACK NAV ── */
+    .back-nav {
+      position: fixed;
+      top: 1.5rem;
+      left: 2rem;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .back-nav:hover { color: var(--green); }
+
+    /* ── PROGRESS SIDEBAR ── */
+    .progress-sidebar {
+      position: fixed;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+    .progress-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 1px solid #333;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .progress-dot.active {
+      background: var(--green);
+      box-shadow: var(--glow-green);
+      transform: scale(1.4);
+    }
+    .progress-dot::before {
+      content: attr(data-label);
+      position: absolute;
+      right: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .progress-dot:hover::before, .progress-dot.active::before { opacity: 1; color: var(--green); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2rem;
+      height: 1px;
+      background: var(--green);
+      box-shadow: var(--glow-green);
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 span {
+      color: var(--green);
+      text-shadow: var(--glow-green);
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+    .tags {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.85rem;
+      border-radius: 99px;
+      border: 1px solid;
+    }
+    .tag-green { color: var(--green); border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.05); }
+    .tag-cyan  { color: var(--cyan);  border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.05); }
+    .tag-red   { color: var(--red);   border-color: rgba(255,68,102,0.3); background: rgba(255,68,102,0.05); }
+
+    .hero-scroll-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    .scroll-arrow { font-size: 1rem; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    /* ── SECTIONS ── */
+    .story-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 6rem 5rem;
+      position: relative;
+      border-top: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .story-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .section-inner {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .section-number {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .section-number::after {
+      content: '';
+      flex: 1;
+      max-width: 3rem;
+      height: 1px;
+      background: var(--green);
+      opacity: 0.4;
+    }
+    .section-inner h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    .section-inner h2 .hl-green { color: var(--green); }
+    .section-inner h2 .hl-cyan  { color: var(--cyan); }
+    .section-inner h2 .hl-red   { color: var(--red); }
+    .section-inner p {
+      color: #999;
+      font-size: 1rem;
+      line-height: 1.85;
+      margin-bottom: 1.25rem;
+      max-width: 680px;
+    }
+    .section-inner p strong { color: var(--text); }
+
+    /* ── TERMINAL BLOCK ── */
+    .terminal {
+      background: #0a0a0a;
+      border: 1px solid #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 2rem 0;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .terminal-bar {
+      background: #141414;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .t-red    { background: #ff5f57; }
+    .t-yellow { background: #febc2e; }
+    .t-green  { background: #28c840; }
+    .t-title {
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 0.7rem;
+      color: #444;
+      letter-spacing: 0.06em;
+      font-family: monospace;
+    }
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: "Cascadia Code", "Fira Code", "Courier New", monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+    }
+    .t-comment { color: #3a3a3a; }
+    .t-cmd     { color: var(--green); }
+    .t-output  { color: #888; }
+    .t-key     { color: var(--cyan); }
+    .t-val     { color: var(--yellow); }
+    .t-alert   { color: var(--red); }
+    .t-dim     { color: #3a3a3a; }
+    .t-white   { color: #ccc; }
+    .t-prompt  { color: #444; }
+
+    /* ── STAT ROW ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .stat-card .num {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--green);
+      text-shadow: var(--glow-green);
+      display: block;
+    }
+    .stat-card .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    /* ── ARCH DIAGRAM ── */
+    .arch {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 2rem 0;
+      position: relative;
+    }
+    .arch-layer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+    .arch-layer:hover { border-color: var(--green); }
+    .arch-layer + .arch-layer { margin-top: -1px; border-radius: 0; }
+    .arch-layer:first-child { border-radius: 10px 10px 0 0; }
+    .arch-layer:last-child  { border-radius: 0 0 10px 10px; }
+    .arch-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .arch-icon.green { background: rgba(0,255,136,0.1); }
+    .arch-icon.cyan  { background: rgba(0,212,255,0.1); }
+    .arch-icon.red   { background: rgba(255,68,102,0.1); }
+    .arch-label { font-weight: 700; font-size: 0.9rem; }
+    .arch-desc  { font-size: 0.8rem; color: var(--muted); }
+    .arch-badge {
+      margin-left: auto;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+    }
+    .arch-badge.green { color: var(--green); background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); }
+    .arch-badge.cyan  { color: var(--cyan);  background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); }
+    .arch-badge.red   { color: var(--red);   background: rgba(255,68,102,0.08); border: 1px solid rgba(255,68,102,0.2); }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-left: 3px solid var(--green);
+      background: rgba(0,255,136,0.04);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    .callout strong { color: var(--green); }
+    .callout.cyan { border-color: var(--cyan); background: rgba(0,212,255,0.04); }
+    .callout.cyan strong { color: var(--cyan); }
+
+    /* ── FOOTER ── */
+    .project-footer {
+      border-top: 1px solid var(--border);
+      padding: 4rem 5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .pf-left h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .pf-left p  { font-size: 0.85rem; color: var(--muted); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.4rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-green {
+      background: var(--green);
+      color: #000;
+      box-shadow: var(--glow-green);
+    }
+    .btn-green:hover { opacity: 0.85; }
+    .btn-outline {
+      color: var(--text);
+      border: 1px solid #333;
+      background: transparent;
+    }
+    .btn-outline:hover { border-color: var(--green); color: var(--green); }
+
+    @media (max-width: 768px) {
+      #hero, .story-section { padding: 4rem 1.5rem; }
+      .stat-row { grid-template-columns: 1fr; }
+      .progress-sidebar { display: none; }
+      .project-footer { padding: 3rem 1.5rem; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="back-nav">← Back to portfolio</a>
+
+  <!-- PROGRESS SIDEBAR -->
+  <div class="progress-sidebar" id="progressSidebar">
+    <div class="progress-dot active" data-label="Intro"    data-target="hero"></div>
+    <div class="progress-dot"        data-label="Problem"  data-target="s1"></div>
+    <div class="progress-dot"        data-label="Pi-hole"  data-target="s2"></div>
+    <div class="progress-dot"        data-label="Suricata" data-target="s3"></div>
+    <div class="progress-dot"        data-label="Correlator" data-target="s4"></div>
+    <div class="progress-dot"        data-label="Decisions" data-target="s5"></div>
+    <div class="progress-dot"        data-label="Results"  data-target="s6"></div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <section id="hero" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 5rem;position:relative;overflow:hidden;">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-glow"></div>
+    <div style="position:relative;z-index:1;">
+      <div class="hero-eyebrow">Home Network Security Project</div>
+      <h1>I built a <span>network-wide</span><br>threat detection system<br>from scratch.</h1>
+      <p class="hero-sub">Two layers running on a Raspberry Pi — Pi-hole kills ads and trackers at the DNS level, and a custom Python correlator built on top of Suricata tells me exactly what any device on my network is actually doing.</p>
+      <div class="tags">
+        <span class="tag tag-green">Raspberry Pi</span>
+        <span class="tag tag-green">Pi-hole</span>
+        <span class="tag tag-cyan">Suricata IDS</span>
+        <span class="tag tag-cyan">Python</span>
+        <span class="tag tag-red">Network Security</span>
+        <span class="tag tag-green">DNS</span>
+        <span class="tag tag-cyan">JSON / Logging</span>
+      </div>
+      <div class="hero-scroll-hint">
+        <span class="scroll-arrow">↓</span>
+        Scroll to explore
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 1: THE PROBLEM ── -->
+  <section class="story-section" id="s1">
+    <div class="section-inner">
+      <div class="section-number">01 — The Problem</div>
+      <h2>What's <span class="hl-red">actually happening</span><br>on my home network?</h2>
+      <p>Every device on a home network is constantly talking — smart TVs phoning home to ad networks, apps sending telemetry, trackers following you across the web. Most people have no visibility into any of it.</p>
+      <p>I wanted to change that. Not just block the noise, but <strong>understand it</strong> — see which devices were making unusual connections, detect abnormal behavior, and get a clear picture of what my network was doing at all times.</p>
+
+      <div class="callout">
+        <strong>The question I was asking:</strong> If a device on my network suddenly starts behaving differently — making hundreds of DNS queries it wasn't making before — how would I even know? And what would I do about it?
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div><div class="t-dot t-yellow"></div><div class="t-dot t-green"></div>
+          <span class="t-title">network traffic (unfiltered)</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-comment"># What a typical home device generates without any filtering</span>
+<span class="t-alert">→ smart-tv.local          doubleclick.net          TRACKING</span>
+<span class="t-alert">→ smart-tv.local          googlesyndication.com    AD NETWORK</span>
+<span class="t-alert">→ phone.local             facebook-hardware.com    TELEMETRY</span>
+<span class="t-alert">→ laptop.local            scorecardresearch.com    ANALYTICS</span>
+<span class="t-output">→ laptop.local            github.com               ok</span>
+<span class="t-output">→ laptop.local            api.anthropic.com        ok</span>
+<span class="t-alert">→ thermostat.local        data.collector.io        ???</span>
+<span class="t-dim">... hundreds more per hour, completely invisible by default</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2: PI-HOLE ── -->
+  <section class="story-section" id="s2">
+    <div class="section-inner">
+      <div class="section-number">02 — Layer 1</div>
+      <h2><span class="hl-green">Pi-hole</span> — DNS sinkhole<br>for the entire network</h2>
+      <p>Pi-hole acts as the DNS resolver for my entire network. Every DNS query from every device flows through it. When a device tries to reach a known ad server or tracker, Pi-hole returns nothing — the request is sinkholes before it ever leaves my network.</p>
+      <p>The result: <strong>network-wide ad blocking with no client software</strong> — works on every device automatically, including smart TVs, phones, and IoT devices that can't run browser extensions.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="num">~30%</span>
+          <span class="label">DNS queries blocked</span>
+        </div>
+        <div class="stat-card">
+          <span class="num">100%</span>
+          <span class="label">Devices covered</span>
+        </div>
+        <div class="stat-card">
+          <span class="num">0</span>
+          <span class="label">Client installs needed</span>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div><div class="t-dot t-yellow"></div><div class="t-dot t-green"></div>
+          <span class="t-title">pi-hole dashboard stats</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-comment"># Pi-hole query log — real-time DNS decisions</span>
+<span class="t-prompt">pi@pihole:~ $</span> <span class="t-cmd">pihole -t</span>
+
+<span class="t-output">[14:22:01] <span class="t-key">QUERY</span>     doubleclick.net       192.168.1.42</span>
+<span class="t-alert">[14:22:01] <span class="t-key">BLOCKED</span>   doubleclick.net       → 0.0.0.0</span>
+<span class="t-output">[14:22:03] <span class="t-key">QUERY</span>     github.com            192.168.1.10</span>
+<span class="t-output">[14:22:03] <span class="t-key">FORWARDED</span> github.com            → 140.82.114.4</span>
+<span class="t-output">[14:22:05] <span class="t-key">QUERY</span>     googlesyndication.com 192.168.1.55</span>
+<span class="t-alert">[14:22:05] <span class="t-key">BLOCKED</span>   googlesyndication.com → 0.0.0.0</span>
+<span class="t-output">[14:22:08] <span class="t-key">QUERY</span>     api.anthropic.com     192.168.1.10</span>
+<span class="t-output">[14:22:08] <span class="t-key">FORWARDED</span> api.anthropic.com     → 52.22.101.3</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: SURICATA ── -->
+  <section class="story-section" id="s3">
+    <div class="section-inner">
+      <div class="section-number">03 — Layer 2</div>
+      <h2><span class="hl-cyan">Suricata</span> — intrusion detection<br>with custom rules</h2>
+      <p>Pi-hole handles DNS filtering, but it can't detect behavioral anomalies in real-time. For that, I added Suricata — an open-source network IDS that inspects traffic at the packet level.</p>
+      <p>I wrote <strong>custom rate-based rules</strong> targeting three specific threat patterns I care about: DNS query spikes, TLS connection bursts, and SYN floods originating from a single host.</p>
+
+      <div class="arch">
+        <div class="arch-layer">
+          <div class="arch-icon green">🌐</div>
+          <div>
+            <div class="arch-label">All network traffic</div>
+            <div class="arch-desc">Every packet from every device on the LAN</div>
+          </div>
+          <div class="arch-badge cyan">Input</div>
+        </div>
+        <div class="arch-layer">
+          <div class="arch-icon cyan">🔍</div>
+          <div>
+            <div class="arch-label">Suricata packet inspection</div>
+            <div class="arch-desc">Deep packet inspection — DNS, TLS, TCP/SYN analysis</div>
+          </div>
+          <div class="arch-badge cyan">IDS Engine</div>
+        </div>
+        <div class="arch-layer">
+          <div class="arch-icon red">⚡</div>
+          <div>
+            <div class="arch-label">Custom rate-based rules</div>
+            <div class="arch-desc">DNS spike, TLS burst, SYN flood detection per host</div>
+          </div>
+          <div class="arch-badge red">My Rules</div>
+        </div>
+        <div class="arch-layer">
+          <div class="arch-icon green">📝</div>
+          <div>
+            <div class="arch-label">eve.json event log</div>
+            <div class="arch-desc">Structured JSON output — every alert with full context</div>
+          </div>
+          <div class="arch-badge green">Output</div>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div><div class="t-dot t-yellow"></div><div class="t-dot t-green"></div>
+          <span class="t-title">custom suricata rules (excerpt)</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-comment"># DNS query spike — more than 100 queries in 60 seconds from one host</span>
+<span class="t-cmd">alert dns any any -> any any (</span>
+<span class="t-white">  msg:"DNS Spike Detected";</span>
+<span class="t-key">  detection_filter: track by_src, count 100, seconds 60;</span>
+<span class="t-val">  sid:9000001; rev:1;</span>
+<span class="t-cmd">)</span>
+
+<span class="t-comment"># TLS connection burst — more than 50 new TLS sessions in 30 seconds</span>
+<span class="t-cmd">alert tls any any -> any any (</span>
+<span class="t-white">  msg:"TLS Burst Detected";</span>
+<span class="t-key">  detection_filter: track by_src, count 50, seconds 30;</span>
+<span class="t-val">  sid:9000002; rev:1;</span>
+<span class="t-cmd">)</span>
+
+<span class="t-comment"># SYN flood — more than 200 SYN packets in 10 seconds from one host</span>
+<span class="t-cmd">alert tcp any any -> any any (</span>
+<span class="t-white">  msg:"SYN Flood Detected"; flags:S;</span>
+<span class="t-key">  detection_filter: track by_src, count 200, seconds 10;</span>
+<span class="t-val">  sid:9000003; rev:1;</span>
+<span class="t-cmd">)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: CORRELATOR ── -->
+  <section class="story-section" id="s4">
+    <div class="section-inner">
+      <div class="section-number">04 — Layer 3</div>
+      <h2>The <span class="hl-green">Spike Correlator</span> —<br>what I built on top</h2>
+      <p>Suricata fires an alert when a rule trips. But an alert alone doesn't tell you <em>what the device was doing</em> when it spiked. That's the gap I built <strong>eve_watcher.py</strong> to fill.</p>
+      <p>The tool continuously tails Suricata's <code style="color:var(--cyan);background:#111;padding:0.1rem 0.4rem;border-radius:4px;">eve.json</code> log. When a spike alert fires, it looks back 60 seconds in the event stream and extracts every DNS hostname and TLS SNI the alerting device contacted — then packages it all into a structured JSON report.</p>
+
+      <div class="callout cyan">
+        <strong>Why SNI matters:</strong> TLS traffic is encrypted, but the Server Name Indication field in the TLS handshake is sent in plaintext. That means even for HTTPS connections, I can see exactly which hostname the device was connecting to — without decrypting anything.
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div><div class="t-dot t-yellow"></div><div class="t-dot t-green"></div>
+          <span class="t-title">eve_watcher.py — core logic</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-comment"># Tail eve.json and watch for spike alerts</span>
+<span class="t-cmd">def</span> <span class="t-key">tail_and_correlate</span>(eve_path):
+    <span class="t-cmd">with</span> open(eve_path) <span class="t-cmd">as</span> f:
+        f.seek(<span class="t-val">0</span>, <span class="t-val">2</span>)  <span class="t-comment"># seek to end</span>
+        <span class="t-cmd">while</span> <span class="t-val">True</span>:
+            line = f.readline()
+            <span class="t-cmd">if not</span> line:
+                time.sleep(<span class="t-val">0.1</span>); <span class="t-cmd">continue</span>
+
+            event = json.loads(line)
+
+            <span class="t-comment"># Spike alert fired — start correlation</span>
+            <span class="t-cmd">if</span> event.get(<span class="t-val">"event_type"</span>) == <span class="t-val">"alert"</span>:
+                src_ip = event[<span class="t-val">"src_ip"</span>]
+                ts     = event[<span class="t-val">"timestamp"</span>]
+
+                <span class="t-comment"># Look back 60 seconds in event log for this host</span>
+                contacts = <span class="t-key">correlate_window</span>(
+                    src_ip, ts,
+                    window_seconds=<span class="t-val">60</span>
+                )
+                <span class="t-comment"># Save structured report</span>
+                <span class="t-key">save_report</span>(src_ip, ts, contacts)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 5: DECISIONS ── -->
+  <section class="story-section" id="s5">
+    <div class="section-inner">
+      <div class="section-number">05 — Engineering Decisions</div>
+      <h2>Why I built it<br><span class="hl-cyan">this way</span></h2>
+
+      <p><strong>Why Suricata instead of raw packet parsing?</strong></p>
+      <p>Suricata handles the hard parts — packet reassembly, protocol parsing, high-speed capture. Building that from scratch in Python would have been thousands of lines and still slower. By sitting on top of Suricata's structured eve.json output, my correlator only needs to handle business logic.</p>
+
+      <p><strong>How are thresholds tuned?</strong></p>
+      <p>I observed baseline traffic on my network for several days and measured real query rates per device. The thresholds (100 DNS/60s, 50 TLS/30s, 200 SYN/10s) were chosen to sit well above normal peaks but below patterns that would indicate actual anomalous behavior — updates, video calls, normal browsing all pass through without tripping alerts.</p>
+
+      <div class="callout">
+        <strong>The encryption boundary:</strong> SNI (Server Name Indication) is visible in TLS handshakes because the client sends the target hostname in plaintext before the encrypted session is established. The correlator captures this — but reads nothing inside the encrypted payload. No decryption, no MITM.
+      </div>
+
+      <div class="arch">
+        <div class="arch-layer">
+          <div class="arch-icon green">✅</div>
+          <div>
+            <div class="arch-label">What the correlator can see</div>
+            <div class="arch-desc">DNS hostnames, TLS SNI fields, connection timing, source IPs</div>
+          </div>
+          <div class="arch-badge green">Visible</div>
+        </div>
+        <div class="arch-layer">
+          <div class="arch-icon red">🔒</div>
+          <div>
+            <div class="arch-label">What it cannot see</div>
+            <div class="arch-desc">TLS payload, message content, passwords, cookies — anything inside the encrypted session</div>
+          </div>
+          <div class="arch-badge red">Encrypted</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 6: RESULTS ── -->
+  <section class="story-section" id="s6">
+    <div class="section-inner">
+      <div class="section-number">06 — Results</div>
+      <h2>A real <span class="hl-green">spike report</span><br>from the system</h2>
+      <p>This is a sanitized example of what eve_watcher.py actually outputs when a DNS spike alert fires. Every field is real — device IP, timestamp, alert type, and the full list of hostnames the device contacted in the 60 seconds before the alert.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div><div class="t-dot t-yellow"></div><div class="t-dot t-green"></div>
+          <span class="t-title">spike_report_192.168.1.55_2024-11-14.json</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-alert">⚡ SPIKE ALERT — DNS query rate exceeded threshold</span>
+
+<span class="t-cmd">{</span>
+  <span class="t-key">"alert_time"</span>:   <span class="t-val">"2024-11-14T02:17:43"</span>,
+  <span class="t-key">"src_ip"</span>:       <span class="t-val">"192.168.1.55"</span>,
+  <span class="t-key">"alert_type"</span>:   <span class="t-val">"DNS Spike Detected"</span>,
+  <span class="t-key">"query_count"</span>:  <span class="t-val">214</span>,
+  <span class="t-key">"window_sec"</span>:   <span class="t-val">60</span>,
+  <span class="t-key">"dns_contacts"</span>: <span class="t-cmd">[</span>
+    <span class="t-val">"api.segment.io"</span>,
+    <span class="t-val">"cdn.branch.io"</span>,
+    <span class="t-val">"metrics.icloud.com"</span>,
+    <span class="t-val">"data.flurry.com"</span>,
+    <span class="t-val">"mobile.launchdarkly.com"</span>,
+    <span class="t-val">"batch.amplitude.com"</span>,
+    <span class="t-val">"app-measurement.com"</span>
+  <span class="t-cmd">]</span>,
+  <span class="t-key">"tls_sni"</span>: <span class="t-cmd">[</span>
+    <span class="t-val">"api.segment.io"</span>,
+    <span class="t-val">"batch.amplitude.com"</span>
+  <span class="t-cmd">]</span>,
+  <span class="t-key">"report_saved"</span>: <span class="t-val">"/var/log/eve_reports/spike_192.168.1.55.json"</span>
+<span class="t-cmd">}</span>
+
+<span class="t-comment"># Verdict: device sent a burst of analytics telemetry to</span>
+<span class="t-comment"># multiple data brokers simultaneously — classic app phone-home</span>
+        </div>
+      </div>
+
+      <p>That report tells me exactly what the device was doing and who it was talking to — in under a second from when the spike happened.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="project-footer">
+    <div class="pf-left">
+      <h3>Home Network Security System</h3>
+      <p>Pi-hole + Suricata + eve_watcher.py · Running on Raspberry Pi</p>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+      <a href="https://github.com/nickmendoza224" target="_blank" class="btn btn-green">View on GitHub</a>
+      <a href="index.html" class="btn btn-outline">← Back to portfolio</a>
+    </div>
+  </div>
+
+  <script>
+    // Scroll animations
+    const sections = document.querySelectorAll('.story-section');
+    const dots = document.querySelectorAll('.progress-dot');
+
+    const allSections = [document.getElementById('hero'), ...sections];
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Update progress dots
+          const id = entry.target.id;
+          dots.forEach(d => {
+            d.classList.toggle('active', d.dataset.target === id);
+          });
+        }
+      });
+    }, { threshold: 0.25 });
+
+    sections.forEach(s => observer.observe(s));
+
+    // Hero dot active on load
+    const heroObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          dots.forEach(d => d.classList.remove('active'));
+          dots[0].classList.add('active');
+        }
+      });
+    }, { threshold: 0.5 });
+    heroObserver.observe(document.getElementById('hero'));
+
+    // Dot click nav
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        document.getElementById(dot.dataset.target)?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>
