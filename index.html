@@ -268,10 +268,86 @@
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 2rem;
+      overflow: hidden;
       transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      color: inherit;
     }
     .project-card:hover { border-color: #444; transform: translateY(-3px); }
+    .project-card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      filter: brightness(0.75) grayscale(20%);
+      transition: filter 0.3s;
+    }
+    .project-card:hover .project-card-img { filter: brightness(0.9) grayscale(0%); }
+    .project-card-img-placeholder {
+      width: 100%;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #444;
+    }
+
+    /* MATRIX / CLASSIFIED PLACEHOLDER */
+    .matrix-placeholder {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      overflow: hidden;
+      background: #000;
+    }
+    .matrix-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .matrix-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: rgba(0,0,0,0.35);
+      font-family: "Courier New", ui-monospace, monospace;
+      pointer-events: none;
+    }
+    .matrix-label {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      color: #39ff88;
+      text-shadow: 0 0 8px rgba(57,255,136,0.85), 0 0 18px rgba(57,255,136,0.4);
+    }
+    .matrix-status {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #39ff88;
+      border: 1px solid rgba(57,255,136,0.5);
+      border-radius: 99px;
+      padding: 0.25rem 0.75rem;
+      animation: matrixBlink 1.4s ease-in-out infinite;
+    }
+    @keyframes matrixBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+    .project-card-body { padding: 1.5rem; }
     .project-tag {
       display: inline-block;
       font-size: 0.68rem;
@@ -283,10 +359,10 @@
       border: 1px solid rgba(79,142,247,0.2);
       border-radius: 99px;
       padding: 0.2rem 0.7rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.85rem;
     }
-    .project-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; }
-    .project-card p { font-size: 0.875rem; color: var(--muted); line-height: 1.65; margin-bottom: 1.25rem; }
+    .project-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .project-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
     .project-link {
       font-size: 0.8rem;
       font-weight: 600;
@@ -298,7 +374,7 @@
       opacity: 0.5;
       transition: opacity 0.2s;
     }
-    .project-link:hover { opacity: 1; }
+    .project-card:hover .project-link { opacity: 1; }
 
     /* CONTACT */
     #contact { border-top: 1px solid var(--border); text-align: center; }
@@ -407,16 +483,16 @@
       <div class="about-text">
         <div class="section-label">About me</div>
         <h2>Discipline from service.<br>Precision in code.</h2>
-        <p>I'm Nick Mendoza — a U.S. Marine veteran and Computer Science student at California State University, Fresno. My time in the military taught me how to perform under pressure, work in high-stakes teams, and see every mission through to completion.</p>
-        <p>I brought that same mindset into software engineering. I work across the full stack, from building clean user interfaces to architecting back-end systems. I care about writing code that works, scales, and makes sense to the next developer who reads it.</p>
-        <p>Currently seeking internship and entry-level software engineering roles where I can contribute and keep growing.</p>
+        <p>I'm Saul Nicholas "Nick" Mendoza a U.S. Marine veteran and Computer Science student at California State University, Fresno. </p>
+        <p>I work across the full stack, from building clean user interfaces to architecting back-end systems. Such as managing websites and setting up servers I care about writing code that works, scales, and makes sense to the next developer who reads it.</p>
+        <p>Currently seeking internship and entry-level software engineering roles where I can contribute and keep growing my skills and bring my experince to the table. </p>
         <div class="about-stats">
           <div>
             <div class="stat-num">4+</div>
             <div class="stat-label">Years of Service</div>
           </div>
           <div>
-            <div class="stat-num">10+</div>
+            <div class="stat-num"> A hand full</div>
             <div class="stat-label">Projects Built</div>
           </div>
           <div>
@@ -434,33 +510,57 @@
     <h2>Projects</h2>
     <div class="projects-grid">
 
-      <div class="project-card">
-        <span class="project-tag">Web App</span>
-        <h3>Project One</h3>
-        <p>Describe what this does, the problem it solves, and the tech you used to build it. Keep it 2–3 sentences.</p>
-        <a href="#" class="project-link">View on GitHub →</a>
-      </div>
+      <a class="project-card" href="pihole-project.html">
+        <img src="military.jpeg" alt="Pi-hole project" class="project-card-img" />
+        <div class="project-card-body">
+          <span class="project-tag">Network Security</span>
+          <h3>Home Network Security System</h3>
+          <p>Pi-hole DNS sinkhole + custom Suricata IDS rules + a Python correlator that detects anomalies and reports exactly what any device was doing during a traffic spike.</p>
+          <span class="project-link">View case study →</span>
+        </div>
+      </a>
 
-      <div class="project-card">
-        <span class="project-tag">Full Stack</span>
-        <h3>Project Two</h3>
-        <p>Describe what this does, the problem it solves, and the tech you used to build it. Keep it 2–3 sentences.</p>
-        <a href="#" class="project-link">View on GitHub →</a>
-      </div>
+      <a class="project-card" href="#">
+        <img src="headshot.jpeg" alt="Project Two" class="project-card-img" style="object-position: center center;" />
+        <div class="project-card-body">
+          <span class="project-tag">Full Stack</span>
+          <h3>Project Two</h3>
+          <p>Describe what this does, the problem it solves, and the tech you used to build it. Keep it 2–3 sentences.</p>
+          <span class="project-link">View on GitHub →</span>
+        </div>
+      </a>
 
-      <div class="project-card">
-        <span class="project-tag">API / Backend</span>
-        <h3>Project Three</h3>
-        <p>Describe what this does, the problem it solves, and the tech you used to build it. Keep it 2–3 sentences.</p>
-        <a href="#" class="project-link">View on GitHub →</a>
-      </div>
+      <a class="project-card" href="#">
+        <div class="matrix-placeholder">
+          <canvas class="matrix-canvas" data-matrix></canvas>
+          <div class="matrix-overlay">
+            <span class="matrix-label">CLASSIFIED</span>
+            <span class="matrix-status">IN PROGRESS</span>
+          </div>
+        </div>
+        <div class="project-card-body">
+          <span class="project-tag">API / Backend</span>
+          <h3>Project Three</h3>
+          <p>01001000 01100101 01101100 01101100 01101111 00100001.</p>
+          <span class="project-link">View on GitHub →</span>
+        </div>
+      </a>
 
-      <div class="project-card">
-        <span class="project-tag">CLI / Tool</span>
-        <h3>Project Four</h3>
-        <p>Describe what this does, the problem it solves, and the tech you used to build it. Keep it 2–3 sentences.</p>
-        <a href="#" class="project-link">View on GitHub →</a>
-      </div>
+      <a class="project-card" href="#">
+        <div class="matrix-placeholder">
+          <canvas class="matrix-canvas" data-matrix></canvas>
+          <div class="matrix-overlay">
+            <span class="matrix-label">CLASSIFIED</span>
+            <span class="matrix-status">IN PROGRESS</span>
+          </div>
+        </div>
+        <div class="project-card-body">
+          <span class="project-tag">CLI / Tool</span>
+          <h3>Project Four</h3>
+          <p>01010011 01001000 01001001 01010000 00100000 01001001 01010100</p>
+          <span class="project-link">View on GitHub →</span>
+        </div>
+      </a>
 
     </div>
   </section>
@@ -482,6 +582,46 @@
     <span>© 2026 Nick Mendoza</span>
     <span>Built with HTML & CSS · Hosted on AWS S3</span>
   </footer>
+
+  <script>
+    (function () {
+      const chars = "01";
+      document.querySelectorAll('[data-matrix]').forEach(function (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width, height, fontSize, columns, drops;
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          width = canvas.width = rect.width;
+          height = canvas.height = rect.height;
+          fontSize = 14;
+          columns = Math.floor(width / fontSize);
+          drops = new Array(columns).fill(0).map(function () {
+            return Math.floor(Math.random() * -20);
+          });
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        function draw() {
+          ctx.fillStyle = 'rgba(0,0,0,0.03)';
+          ctx.fillRect(0, 0, width, height);
+          ctx.fillStyle = '#39ff88';
+          ctx.font = fontSize + 'px monospace';
+          for (let i = 0; i < drops.length; i++) {
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > height && Math.random() > 0.975) {
+              drops[i] = 0;
+            }
+            drops[i]++;
+          }
+          requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+      });
+    })();
+  </script>
 
 </body>
 </html>
